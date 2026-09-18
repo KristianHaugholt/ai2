@@ -64,11 +64,11 @@ class CSP:
             for xj in neighbors[xi]:
                 q.append((xi, xj))
 
-        def revise(xi: str, xj: str) -> bool:
-            revised = False
+        def revise(xi: str, xj: str) -> bool:       #returns true iff domain of xi is revised
+            revised = False                         #revised <= false
             to_remove = set()
-            for vi in set(self.domains[xi]):
-                # if no value vj in domain[xj] allows (xi=vi, xj=vj), remove vi
+            for vi in set(self.domains[xi]):        #for each x vi in di do
+                # if no value vj in domain[xj] allows (xi=vi, xj=vj), remove vi from domain[xi]
                 if not any(self.constraint_allows(xi, vi, xj, vj) for vj in self.domains[xj]):
                     to_remove.add(vi)
             if to_remove:
@@ -76,16 +76,16 @@ class CSP:
                 revised = True
             return revised
 
-        # AC-3 main loop
-        while q:
-            xi, xj = q.popleft()
-            if revise(xi, xj):
-                if len(self.domains[xi]) == 0:
+                                                # AC-3 main loop
+        while q:                                #while q is not empty
+            xi, xj = q.popleft()                #xi, xj = pop(q) 
+            if revise(xi, xj):                  #if revise(xi, xj) then
+                if len(self.domains[xi]) == 0:  #if size of di = 0 then return false
                     return False
-                for xk in neighbors[xi]:
+                for xk in neighbors[xi]:        #for each xk in xi.neighbors - xj do
                     if xk == xj:
                         continue
-                    q.append((xk, xi))
+                    q.append((xk, xi))          #add (xk, xi) to q
         return True
 
     def constraint_allows(self, variable1: str, value1: Any, variable2: str, value2: Any) -> bool:
