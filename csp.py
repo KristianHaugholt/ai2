@@ -1,6 +1,5 @@
 from typing import Any
-from queue import Queue
-from collections import defaultdict
+from collections import defaultdict, deque
 
 
 class CSP:
@@ -60,26 +59,17 @@ class CSP:
             neighbors[xj].add(xi)
 
         # Initialize queue with all arcs (xi, xj)
-        q: Queue[tuple[str, str]] = Queue()
+        q: deque[tuple[str, str]] = deque()
         for xi in neighbors:
             for xj in neighbors[xi]:
-                q.put((xi, xj))
-
-        def allowed(xi: str, vi: Any, xj: str, vj: Any) -> bool:
-            # Return True if assigning xi=vi and xj=vj does NOT violate a binary constraint
-            if (xi, xj) in self.binary_constraints:
-                return (vi, vj) in self.binary_constraints[(xi, xj)]
-            if (xj, xi) in self.binary_constraints:
-                return (vi, vj) in self.binary_constraints[(xj, xi)]
-            # No constraint between xi and xj
-            return True
+                q.append((xi, xj))
 
         def revise(xi: str, xj: str) -> bool:
             revised = False
             to_remove = set()
             for vi in set(self.domains[xi]):
                 # if no value vj in domain[xj] allows (xi=vi, xj=vj), remove vi
-                if not any(allowed(xi, vi, xj, vj) for vj in self.domains[xj]):
+                if not any(self.constraint_allows(xi, vi, xj, vj) for vj in self.domains[xj]):
                     to_remove.add(vi)
             if to_remove:
                 self.domains[xi] = set(self.domains[xi]) - to_remove
@@ -87,15 +77,30 @@ class CSP:
             return revised
 
         # AC-3 main loop
-        while not q.empty():
-            xi, xj = q.get()
+        while q:
+            xi, xj = q.popleft()
             if revise(xi, xj):
                 if len(self.domains[xi]) == 0:
                     return False
                 for xk in neighbors[xi]:
                     if xk == xj:
                         continue
-                    q.put((xk, xi))
+                    q.append((xk, xi))
+        return True
+
+    def constraint_allows(self, variable1: str, value1: Any, variable2: str, value2: Any) -> bool:
+        """Return True if the pair (variable1=value1, variable2=value2) does not violate a constraint.
+
+        Uses the same variable1/variable2 structure and or-condition checks as other methods.
+        """
+        if (
+            (variable1, variable2) in self.binary_constraints and
+            (value1, value2) not in self.binary_constraints[(variable1, variable2)]
+        ) or (
+            (variable2, variable1) in self.binary_constraints and
+            (value1, value2) not in self.binary_constraints[(variable2, variable1)]
+        ):
+            return False
         return True
 
     def backtracking_search(self) -> None | dict[str, Any]:
@@ -159,13 +164,7 @@ class CSP:
         var : str"""
         # Check assigned neighbors for consistency
         for variable2, value2 in assignment.items():
-            if (
-             (variable1, variable2) in self.binary_constraints and
-             (value1, value2) not in self.binary_constraints[(variable1, variable2)]
-         ) or (
-             (variable2, variable1) in self.binary_constraints and
-             (value1, value2) not in self.binary_constraints[(variable2, variable1)]
-         ):
+            if not self.constraint_allows(variable1, value1, variable2, value2):
                 return False
         return True
 
