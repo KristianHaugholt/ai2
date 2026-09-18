@@ -22,6 +22,9 @@ class CSP:
         """
         self.variables = variables
         self.domains = domains
+        # Backtracking statistics
+        self.bt_calls = 0
+        self.bt_failures = 0
 
         # Binary constraints as a dictionary mapping variable pairs to a set of value pairs.
         #
@@ -111,11 +114,15 @@ class CSP:
         None | dict[str, Any]
             A solution if any exists, otherwise None
         """
+        # reset counters
+        self.bt_calls = 0
+        self.bt_failures = 0
+
         def backtrack(assignment: dict[str, Any]):
-            # YOUR CODE HERE (and remove the assertion below)
+            self.bt_calls += 1
             if len(assignment) == len(self.variables):
                 return assignment
-            
+
             var = self.select_unassigned_variable(assignment)
 
             # Try each value in the domain of the selected variable
@@ -124,16 +131,17 @@ class CSP:
                 if self.is_consistent(var, val, assignment):
                     # Make assignment
                     assignment[var] = val
-                    
+
                     # Recursively search for a solution
                     result = backtrack(assignment)
                     if result is not None:
                         return result
-                    
+
                     # Backtrack: remove assignment if it did not lead to a solution
                     del assignment[var]
 
             # No valid assignment found for this branch
+            self.bt_failures += 1
             return None
 
         return backtrack({})

@@ -20,42 +20,76 @@ def print_solution(solution):
 
 
 # Choose Sudoku problem
-grid = open('sudoku_easy.txt').read().split()
-
 width = 9
 box_width = 3
 
-domains = {}
-for row in range(width):
+def run_on_file(path: str):
+    grid = open(path).read().split()
+
+    domains = {}
+    for row in range(width):
+        for col in range(width):
+            if grid[row][col] == '0':
+                domains[f'X{row+1}{col+1}'] = set(range(1, 10))
+            else:
+                domains[f'X{row+1}{col+1}'] = {int(grid[row][col])}
+
+    edges = []
+    for row in range(width):
+        edges += alldiff([f'X{row+1}{col+1}' for col in range(width)])
     for col in range(width):
-        if grid[row][col] == '0':
-            domains[f'X{row+1}{col+1}'] = set(range(1, 10))
-        else:
-            domains[f'X{row+1}{col+1}'] = {int(grid[row][col])}
+        edges += alldiff([f'X{row+1}{col+1}' for row in range(width)])
+    for box_row in range(box_width):
+        for box_col in range(box_width):
+            edges += alldiff(
+                [
+                    f'X{row+1}{col+1}' for row in range(box_row * box_width, (box_row + 1) * box_width)
+                    for col in range(box_col * box_width, (box_col + 1) * box_width)
+                ]
+            )
 
-edges = []
-for row in range(width):
-    edges += alldiff([f'X{row+1}{col+1}' for col in range(width)])
-for col in range(width):
-    edges += alldiff([f'X{row+1}{col+1}' for row in range(width)])
-for box_row in range(box_width):
-    for box_col in range(box_width):
-        cells = []
-        edges += alldiff(
-            [
-                f'X{row+1}{col+1}' for row in range(box_row * box_width, (box_row + 1) * box_width)
-                for col in range(box_col * box_width, (box_col + 1) * box_width)
-            ]
-        )
+    csp = CSP(
+        variables=[f'X{row+1}{col+1}' for row in range(width) for col in range(width)],
+        domains={k: set(v) for k, v in domains.items()},
+        edges=edges,
+    )
 
-csp = CSP(
-    variables=[f'X{row+1}{col+1}' for row in range(width) for col in range(width)],
-    domains=domains,
-    edges=edges,
-)
+    from time import perf_counter
+    from pprint import pprint
 
-print(csp.ac_3())
-print_solution(csp.backtracking_search())
+    t0 = perf_counter()
+    ac3_ok = csp.ac_3()
+    t_ac3 = perf_counter() - t0
+
+    # copy domains after AC-3
+    domains_after_ac3 = {v: sorted(list(d)) for v, d in csp.domains.items()}
+
+    t1 = perf_counter()
+    solution = csp.backtracking_search()
+    t_back = perf_counter() - t1
+
+    total = perf_counter() - t0
+
+    print('File:', path)
+    print('AC-3 returned:', ac3_ok)
+    print('AC-3 time (s):', t_ac3)
+    print('Domains after AC-3:')
+    pprint(domains_after_ac3)
+    print('Backtracking calls:', csp.bt_calls)
+    print('Backtracking failures:', csp.bt_failures)
+    print('Backtracking time (s):', t_back)
+    print('Total time (s):', total)
+    print('Solution:')
+    if solution:
+        print_solution(solution)
+    else:
+        print('No solution')
+    print('\n' + '='*60 + '\n')
+
+
+if __name__ == '__main__':
+    for fname in ['sudoku_easy.txt', 'sudoku_medium.txt', 'sudoku_hard.txt', 'sudoku_very_hard.txt']:
+        run_on_file(fname)
 
 # Expected output after implementing csp.ac_3() and csp.backtracking_search():
 # True
