@@ -151,24 +151,22 @@ class CSP:
                 return var
         raise ValueError("All variables are assigned")
     
-    def is_consistent(self, var: str, val: Any, assignment: dict[str, Any]) -> bool:
+    def is_consistent(self, variable1: str, value1: Any, assignment: dict[str, Any]) -> bool:
         """Checks if assigning var = val is consistent with the current assignment.
         
         Parameters
         ----------
         var : str"""
         # Check assigned neighbors for consistency
-        for other_var, other_val in assignment.items():
-            if other_var == var:
-                continue
-            # If there is a binary constraint between var and other_var,
-            # ensure (val, other_val) is allowed.
-            if (var, other_var) in self.binary_constraints:
-                if (val, other_val) not in self.binary_constraints[(var, other_var)]:
-                    return False
-            elif (other_var, var) in self.binary_constraints:
-                if (val, other_val) not in self.binary_constraints[(other_var, var)]:
-                    return False
+        for variable2, value2 in assignment.items():
+            if (
+             (variable1, variable2) in self.binary_constraints and
+             (value1, value2) not in self.binary_constraints[(variable1, variable2)]
+         ) or (
+             (variable2, variable1) in self.binary_constraints and
+             (value1, value2) not in self.binary_constraints[(variable2, variable1)]
+         ):
+                return False
         return True
 
 
