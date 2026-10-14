@@ -141,6 +141,7 @@ def alpha_beta_pruning(game: Game, state: State) -> Action | None:
     return move
 ############################################################################
 
+import time
 # Minimax
 game = Game()
 
@@ -148,8 +149,11 @@ state = game.initial_state()
 game.print(state)
 while not game.is_terminal(state):
     player = game.to_move(state)
+    start = time.perf_counter()
     action = minimax_search(game, state) # The player whose turn it is
                                          # is the MAX player
+    end = time.perf_counter()
+    print(f"Elapsed: {(end - start)} s")                                    
     print(f'P{player+1}\'s action: {action}')
     assert action is not None
     state = game.result(state, action)
@@ -163,8 +167,11 @@ state = game.initial_state()
 game.print(state)
 while not game.is_terminal(state):
     player = game.to_move(state)
+    start = time.perf_counter()
     action = alpha_beta_pruning(game, state) # The player whose turn it is
                                              # is the MAX player
+    end = time.perf_counter()
+    print(f"Elapsed: {(end - start)} s")   
     print(f'P{player+1}\'s action: {action}')
     assert action is not None
     state = game.result(state, action)
