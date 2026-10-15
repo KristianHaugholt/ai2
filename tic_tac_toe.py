@@ -1,4 +1,5 @@
 import math
+import time
 
 from copy import deepcopy
 
@@ -144,6 +145,7 @@ def alpha_beta_pruning(game: Game, state: State) -> Action | None:
 import time
 # Minimax
 game = Game()
+first=True
 
 state = game.initial_state()
 game.print(state)
@@ -153,16 +155,18 @@ while not game.is_terminal(state):
     action = minimax_search(game, state) # The player whose turn it is
                                          # is the MAX player
     end = time.perf_counter()
-    print(f"Elapsed: {(end - start)} s")                                    
+    if first: firstMiniMax = (end - start)                                 
     print(f'P{player+1}\'s action: {action}')
     assert action is not None
     state = game.result(state, action)
     game.print(state)
+    first=False
+
 
 
 # Alpha Pruning
 game = Game()
-
+first=True
 state = game.initial_state()
 game.print(state)
 while not game.is_terminal(state):
@@ -171,8 +175,13 @@ while not game.is_terminal(state):
     action = alpha_beta_pruning(game, state) # The player whose turn it is
                                              # is the MAX player
     end = time.perf_counter()
-    print(f"Elapsed: {(end - start)} s")   
+    if first: firstAlphaBeta = (end - start)
     print(f'P{player+1}\'s action: {action}')
     assert action is not None
     state = game.result(state, action)
     game.print(state)
+    first=False
+
+print(f"Elapsed first move (Minimax): {firstMiniMax} s")
+print(f"Elapsed first move (Alpha-Beta): {firstAlphaBeta} s")
+print(f"Speedup: {firstMiniMax/firstAlphaBeta:.2f}x faster with Alpha-Beta pruning")
