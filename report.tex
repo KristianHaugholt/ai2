@@ -1,0 +1,298 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{codegray}{rgb}{0.45,0.45,0.45}
+\definecolor{backcolour}{rgb}{0.96,0.96,0.96}
+
+\lstdefinestyle{codeblock}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    numbers=none,
+    frame=single,
+    rulecolor=\color{black!15}
+}
+
+\lstdefinestyle{terminaloutput}{
+    backgroundcolor=\color{backcolour},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    numbers=none,
+    frame=single,
+    rulecolor=\color{black!15}
+}
+
+\lstset{style=codeblock}
+
+\title{\textbf{Assignment 3: Adversarial Search}}
+\author{Artificial Intelligence (AI 2) --- OsloMet}
+\date{October 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{The Halving Game}
+
+The Halving game begins with $N = 5$. Players alternate between decrementing ($N - 1$) and halving ($\lfloor N/2 \rfloor$). The player whose turn starts with $N = 0$ wins.
+
+\subsection{Output}
+\begin{lstlisting}[style=terminaloutput]
+The number is 5 and it is P1's turn
+P1's action: --
+The number is 4 and it is P2's turn
+P2's action: --
+The number is 3 and it is P1's turn
+P1's action: /2
+The number is 1 and it is P2's turn
+P2's action: --
+The number is 0 and P1 won
+\end{lstlisting}
+
+\subsection{Discussion}
+$N = 5$ is a forced win for Player 1. P1 moves to $N = 4$, leaving P2 in a losing position (both $4 - 1 = 3$ and $4 // 2 = 2$ lead to positions P1 can win from). P2 decrements to 3, P1 halves to 1, and P2 is forced to decrement to 0. At $N = 0$ it is P1's turn, so P1 wins.
+
+\section{The Bucket Game}
+
+Player 1 (MAX) chooses bucket $A = \{-50, 50\}$, $B = \{3, 1\}$, or $C = \{-5, 15\}$. Player 2 (MIN) then chooses one of the values inside that bucket.
+
+\subsection{Output}
+\begin{lstlisting}[style=terminaloutput]
+The state is (0, ['A', 'B', 'C']) and it is P1's turn
+P1's action: B
+The state is (1, [3, 1]) and it is P2's turn
+P2's action: 1
+The state is (0, [1]) and P1's utility is 1
+\end{lstlisting}
+
+\subsection{Discussion}
+Minimax evaluates the worst-case payoff of each bucket:
+\begin{itemize}
+    \item Bucket $A$: P2 chooses $-50 \implies \text{utility} = -50$.
+    \item Bucket $B$: P2 chooses $1 \implies \text{utility} = 1$.
+    \item Bucket $C$: P2 chooses $-5 \implies \text{utility} = -5$.
+\end{itemize}
+Player 1 chooses bucket $B$ because its guaranteed minimum ($1$) is higher than $A$'s ($-50$) and $C$'s ($-5$). P2 subsequently selects $1$, resulting in final utility $1$.
+
+\section{Tic-Tac-Toe}
+
+Both players play autonomously using Minimax / Alpha-Beta search.
+
+\subsection{Output}
+\begin{lstlisting}[style=terminaloutput]
+   |   |  
+---+---+---
+   |   |  
+---+---+---
+   |   |  
+
+It is P1's turn to move
+P1's action: (0, 0)
+
+ x |   |  
+---+---+---
+   |   |  
+---+---+---
+   |   |  
+
+It is P2's turn to move
+P2's action: (1, 1)
+
+ x |   |  
+---+---+---
+   | o |  
+---+---+---
+   |   |  
+
+It is P1's turn to move
+P1's action: (0, 1)
+
+ x | x |  
+---+---+---
+   | o |  
+---+---+---
+   |   |  
+
+It is P2's turn to move
+P2's action: (0, 2)
+
+ x | x | o
+---+---+---
+   | o |  
+---+---+---
+   |   |  
+
+It is P1's turn to move
+P1's action: (2, 0)
+
+ x | x | o
+---+---+---
+   | o |  
+---+---+---
+ x |   |  
+
+It is P2's turn to move
+P2's action: (1, 0)
+
+ x | x | o
+---+---+---
+ o | o |  
+---+---+---
+ x |   |  
+
+It is P1's turn to move
+P1's action: (1, 2)
+
+ x | x | o
+---+---+---
+ o | o | x
+---+---+---
+ x |   |  
+
+It is P2's turn to move
+P2's action: (2, 1)
+
+ x | x | o
+---+---+---
+ o | o | x
+---+---+---
+ x | o |  
+
+It is P1's turn to move
+P1's action: (2, 2)
+
+ x | x | o
+---+---+---
+ o | o | x
+---+---+---
+ x | o | x
+
+The game is a draw
+\end{lstlisting}
+
+\subsection{Discussion}
+Under optimal play from both sides, neither player can force a win. The game correctly concludes in a draw after filling the board. Both Minimax and Alpha-Beta produce this identical sequence of moves.
+
+\section{Non-Mandatory: Immediate Win in Tic-Tac-Toe}
+
+Consider the board state:
+\begin{center}
+\begin{tabular}{c|c|c}
+\texttt{x} & \texttt{o} & \texttt{o} \\ \hline
+\texttt{x} &           &           \\ \hline
+           &           &          
+\end{tabular}
+\end{center}
+
+\subsection{Why Minimax Plays the Middle Square (1, 1)}
+Standard utility assigns $+1$ to any terminal win, regardless of how many moves it takes. An immediate win at $(2, 0)$ gives utility $+1$, but playing the center $(1, 1)$ also guarantees a forced win later, which also evaluates to $+1$. Because both actions yield identical utility $+1$, Minimax treats them as tied and simply picks the first one encountered in row-major order: $(1, 1)$ before $(2, 0)$.
+
+\subsection{Fixing the Game Class}
+To prioritize faster wins, we reward wins that leave more empty squares (shorter depth):
+
+\begin{lstlisting}[language=Python]
+class FastWinGame(Game):
+    def utility(self, state: State, player: int) -> float:
+        assert self.is_terminal(state)
+        empty = sum(row.count(None) for row in state[1])
+        if self.is_winner(state, player):
+            return 1 + empty
+        if self.is_winner(state, (player + 1) % 2):
+            return -(1 + empty)
+        return 0
+\end{lstlisting}
+
+\subsection{Output Comparison}
+With the standard \texttt{Game} class, P1 delays the win by playing $(1, 1)$ first:
+\begin{lstlisting}[style=terminaloutput]
+ x | o | o
+---+---+---
+ x |   |  
+---+---+---
+   |   |  
+
+It is P1's turn to move
+P1's action: (1, 1)
+
+ x | o | o
+---+---+---
+ x | x |  
+---+---+---
+   |   |  
+
+It is P2's turn to move
+P2's action: (1, 2)
+
+ x | o | o
+---+---+---
+ x | x | o
+---+---+---
+   |   |  
+
+It is P1's turn to move
+P1's action: (2, 0)
+
+ x | o | o
+---+---+---
+ x | x | o
+---+---+---
+ x |   |  
+
+P1 won
+\end{lstlisting}
+
+With \texttt{FastWinGame}, P1 plays $(2, 0)$ immediately to win on the first turn (utility $1 + 4 = 5$):
+\begin{lstlisting}[style=terminaloutput]
+ x | o | o
+---+---+---
+ x |   |  
+---+---+---
+   |   |  
+
+It is P1's turn to move
+P1's action: (2, 0)
+
+ x | o | o
+---+---+---
+ x |   |  
+---+---+---
+ x |   |  
+
+P1 won
+\end{lstlisting}
+
+\section{Runtime: Minimax vs. Alpha-Beta Pruning}
+
+\subsection{First Move Runtimes}
+Timing the search for the very first move on an empty $3 \times 3$ board:
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{First Move} & \textbf{Time (s)} & \textbf{Speedup} \\
+\midrule
+Minimax            & $(0, 0)$            & $15.34\text{ s}$  & $1.0\times$ \\
+Alpha-Beta Pruning & $(0, 0)$            & $0.42\text{ s}$   & $\mathbf{36.1\times}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Why the Speedup Is So Drastic}
+\begin{enumerate}
+    \item \textbf{Subtree elimination:} Alpha-Beta does not just skip single moves; whenever $v \ge \beta$ or $v \le \alpha$, it skips entire recursive subtrees containing thousands of board states.
+    \item \textbf{Branching factor reduction:} Alpha-Beta reduces the effective search complexity from $O(b^d)$ towards $O(b^{d/2})$ under good move ordering.
+    \item \textbf{Frequent cutoffs from draws:} In Tic-tac-toe, many lines lead to a draw ($0$). Once $\alpha = 0$, any MIN branch finding a drawing move immediately triggers an $\alpha$-cutoff ($v \le \alpha$), skipping all other opponent replies.
+    \item \textbf{Less state copying:} Skipping hundreds of thousands of node visits avoids calls to \texttt{deepcopy(board)}, significantly cutting Python runtime overhead.
+\end{enumerate}
+
+\end{document}

@@ -185,3 +185,41 @@ while not game.is_terminal(state):
 print(f"Elapsed first move (Minimax): {firstMiniMax} s")
 print(f"Elapsed first move (Alpha-Beta): {firstAlphaBeta} s")
 print(f"Speedup: {firstMiniMax/firstAlphaBeta:.2f}x faster with Alpha-Beta pruning")
+
+
+##############################################################################
+# Non-mandatory (Section 4.1): Prioritizing quicker wins
+class FastWinGame(Game):
+    def utility(self, state: State, player: int) -> float:
+        assert self.is_terminal(state)
+        empty = sum(row.count(None) for row in state[1])
+        if self.is_winner(state, player):
+            return 1 + empty
+        if self.is_winner(state, (player + 1) % 2):
+            return -(1 + empty)
+        return 0
+
+
+print("\n--- Non-mandatory: Standard Game ---")
+game = Game()
+state: State = (0, [[0, 1, 1], [0, None, None], [None, None, None]])
+game.print(state)
+while not game.is_terminal(state):
+    player = game.to_move(state)
+    action = minimax_search(game, state)
+    print(f'P{player+1}\'s action: {action}')
+    assert action is not None
+    state = game.result(state, action)
+    game.print(state)
+
+print("\n--- Non-mandatory: FastWinGame ---")
+fast_game = FastWinGame()
+state = (0, [[0, 1, 1], [0, None, None], [None, None, None]])
+fast_game.print(state)
+while not fast_game.is_terminal(state):
+    player = fast_game.to_move(state)
+    action = minimax_search(fast_game, state)
+    print(f'P{player+1}\'s action: {action}')
+    assert action is not None
+    state = fast_game.result(state, action)
+    fast_game.print(state)
